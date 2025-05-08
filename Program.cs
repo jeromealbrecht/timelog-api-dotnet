@@ -1,23 +1,22 @@
 using Microsoft.Extensions.Options;
 using TimeLog.Models;
 using TimeLog.Services;
-using Microsoft.AspNetCore.HttpsPolicy;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Supprime les URLs héritées
-builder.WebHost.UseSetting(WebHostDefaults.ServerUrlsKey, null);
+// Si on est sur Render (production), utilise le port d'environnement
+if (!builder.Environment.IsDevelopment())
+{
+    builder.WebHost.UseUrls("http://0.0.0.0:" + (Environment.GetEnvironmentVariable("PORT") ?? "8080"));
+}
 
-// Utilise le port fourni par Render ou 8080 par défaut
-builder.WebHost.UseUrls("http://0.0.0.0:" + (Environment.GetEnvironmentVariable("PORT") ?? "8080"));
-
-// Configure Kestrel
+// Configure Kestrel uniquement en local/dev
 if (builder.Environment.IsDevelopment())
 {
     builder.WebHost.ConfigureKestrel(serverOptions =>
     {
         serverOptions.ListenLocalhost(5282); // HTTP
-        serverOptions.ListenLocalhost(7282, listenOptions => 
+        serverOptions.ListenLocalhost(7282, listenOptions =>
         {
             listenOptions.UseHttps();
         }); // HTTPS
@@ -40,23 +39,14 @@ builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<TimeLogService>();
 builder.Services.AddTransient<KeyVaultService>();
 
-builder.Services.Configure<HttpsRedirectionOptions>(options =>
-{
-    options.HttpsPort = 5001; // Mets ici le port HTTPS que tu utilises
-});
-
 var app = builder.Build();
 
-// Dev only: Swagger UI
+// Dev only: Swagger UI et redirection HTTPS
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseHttpsRedirection();
-}
-else
-{
-    // PAS de redirection HTTPS en production (Render gère déjà le HTTPS)
+    app.UseHttpsRedirection(); // Redirection vers HTTPS uniquement en local
 }
 
 app.UseAuthorization();
