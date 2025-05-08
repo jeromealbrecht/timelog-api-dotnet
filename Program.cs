@@ -10,19 +10,6 @@ if (!builder.Environment.IsDevelopment())
     builder.WebHost.UseUrls("http://0.0.0.0:" + (Environment.GetEnvironmentVariable("PORT") ?? "8080"));
 }
 
-// Configure Kestrel uniquement en local/dev
-if (builder.Environment.IsDevelopment())
-{
-    builder.WebHost.ConfigureKestrel(serverOptions =>
-    {
-        serverOptions.ListenLocalhost(5282); // HTTP
-        serverOptions.ListenLocalhost(7282, listenOptions =>
-        {
-            listenOptions.UseHttps();
-        }); // HTTPS
-    });
-}
-
 // Swagger + API Explorer
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
