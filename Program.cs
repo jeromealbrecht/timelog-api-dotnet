@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseSetting(WebHostDefaults.ServerUrlsKey, null);
 
 // Configure Kestrel
-if (app.Environment.IsDevelopment())
+if (builder.Environment.IsDevelopment())
 {
     builder.WebHost.ConfigureKestrel(serverOptions =>
     {
