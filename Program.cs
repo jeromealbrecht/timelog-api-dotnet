@@ -49,9 +49,13 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseHttpsRedirection();
+}
+else
+{
+    // PAS de redirection HTTPS en production (Render gère déjà le HTTPS)
 }
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
