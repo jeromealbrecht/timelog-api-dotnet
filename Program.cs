@@ -20,13 +20,6 @@ if (builder.Environment.IsDevelopment())
         }); // HTTPS
     });
 }
-else
-{
-    builder.WebHost.ConfigureKestrel(serverOptions =>
-    {
-        serverOptions.ListenAnyIP(8080); // HTTP pour Render
-    });
-}
 
 // Swagger + API Explorer
 builder.Services.AddEndpointsApiExplorer();
