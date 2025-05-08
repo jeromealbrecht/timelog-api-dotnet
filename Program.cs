@@ -8,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Supprime les URLs héritées
 builder.WebHost.UseSetting(WebHostDefaults.ServerUrlsKey, null);
 
+// Utilise le port fourni par Render ou 8080 par défaut
+builder.WebHost.UseUrls("http://0.0.0.0:" + (Environment.GetEnvironmentVariable("PORT") ?? "8080"));
+
 // Configure Kestrel
 if (builder.Environment.IsDevelopment())
 {
@@ -18,13 +21,6 @@ if (builder.Environment.IsDevelopment())
         {
             listenOptions.UseHttps();
         }); // HTTPS
-    });
-}
-else
-{
-    builder.WebHost.ConfigureKestrel(serverOptions =>
-    {
-        serverOptions.ListenAnyIP(8080); // HTTP pour Render
     });
 }
 
