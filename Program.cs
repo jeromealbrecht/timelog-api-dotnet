@@ -25,4 +25,8 @@ var app = builder.Build();
 app.UseAuthorization();
 app.MapControllers();
 
+// Config Render: écouter sur le bon port
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://0.0.0.0:{port}");
+
 app.Run();
