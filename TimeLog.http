@@ -1,0 +1,6 @@
+@TimeLog_HostAddress = http://localhost:5282
+
+GET {{TimeLog_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
