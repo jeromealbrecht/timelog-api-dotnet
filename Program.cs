@@ -9,14 +9,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseSetting(WebHostDefaults.ServerUrlsKey, null);
 
 // Configure Kestrel
-builder.WebHost.ConfigureKestrel(serverOptions =>
+if (app.Environment.IsDevelopment())
 {
-    serverOptions.ListenLocalhost(5282); // HTTP
-    serverOptions.ListenLocalhost(7282, listenOptions => 
+    builder.WebHost.ConfigureKestrel(serverOptions =>
     {
-        listenOptions.UseHttps();
-    }); // HTTPS
-});
+        serverOptions.ListenLocalhost(5282); // HTTP
+        serverOptions.ListenLocalhost(7282, listenOptions => 
+        {
+            listenOptions.UseHttps();
+        }); // HTTPS
+    });
+}
+else
+{
+    builder.WebHost.ConfigureKestrel(serverOptions =>
+    {
+        serverOptions.ListenAnyIP(8080); // HTTP pour Render
+    });
+}
 
 // Swagger + API Explorer
 builder.Services.AddEndpointsApiExplorer();
