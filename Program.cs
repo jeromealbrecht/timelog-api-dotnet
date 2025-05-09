@@ -14,7 +14,7 @@ var isDev = builder.Environment.IsDevelopment();
 var port = isDev ? "5000" : (Environment.GetEnvironmentVariable("PORT") ?? "8080");
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
-  Console.WriteLine("ENV OpenAI__ApiKey: " + Environment.GetEnvironmentVariable("OpenAI__ApiKey"));
+  Console.WriteLine("ENV OpenAI__ApiKey: " + Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
 
 // Swagger + API Explorer
 builder.Services.AddEndpointsApiExplorer();
