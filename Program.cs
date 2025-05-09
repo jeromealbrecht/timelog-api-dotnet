@@ -14,6 +14,8 @@ var isDev = builder.Environment.IsDevelopment();
 var port = isDev ? "5000" : (Environment.GetEnvironmentVariable("PORT") ?? "8080");
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
+  Console.WriteLine("ENV OpenAI__ApiKey: " + Environment.GetEnvironmentVariable("OpenAI__ApiKey"));
+
 // Swagger + API Explorer
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -26,8 +28,6 @@ builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
 // Configure OpenAI
-builder.Services.Configure<OpenAISettings>(
-    builder.Configuration.GetSection("OpenAISettings"));
 builder.Services.AddHttpClient<OpenAIService>();
 
 // Ajouter les services

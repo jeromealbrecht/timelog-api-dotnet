@@ -1,32 +1,30 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
-using TimeLog.Models;
 
 namespace TimeLog.Services;
 
 public class OpenAIService
 {
     private readonly HttpClient _httpClient;
-    private readonly OpenAISettings _settings;
+    private readonly string _apiKey;
+    private readonly string _baseUrl = "https://api.openai.com/v1/";
+    private readonly string _model = "gpt-3.5-turbo";
 
-    public OpenAIService(HttpClient httpClient, IOptions<OpenAISettings> settings)
+    public OpenAIService(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _settings = settings.Value;
-        
-        _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _settings.ApiKey);
-
-        Console.WriteLine($"API KEY: {_settings.ApiKey}");
+        _apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? string.Empty;
+        _httpClient.BaseAddress = new Uri(_baseUrl);
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        Console.WriteLine("API KEY: " + _apiKey); // Pour debug
     }
 
     public async Task<string> GetChatCompletionAsync(string prompt)
     {
         var request = new
         {
-            model = _settings.Model,
+            model = _model,
             messages = new[]
             {
                 new { role = "user", content = prompt }
@@ -50,7 +48,6 @@ public class OpenAIService
         }
 
         var responseObject = JsonSerializer.Deserialize<JsonElement>(responseContent);
-        
         return responseObject.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? string.Empty;
     }
 } 
