@@ -2,6 +2,9 @@ using Microsoft.Extensions.Options;
 using TimeLog.Models;
 using TimeLog.Services;
 
+// Charger les variables d'environnement
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration du mode développement
