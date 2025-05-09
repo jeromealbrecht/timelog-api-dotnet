@@ -18,6 +18,8 @@ public class OpenAIService
         
         _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _settings.ApiKey);
+
+        Console.WriteLine($"API KEY: {_settings.ApiKey}");
     }
 
     public async Task<string> GetChatCompletionAsync(string prompt)
