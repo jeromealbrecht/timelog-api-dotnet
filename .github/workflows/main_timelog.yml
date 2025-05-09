@@ -8,6 +8,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron: "*/10 * * * *"
 
 jobs:
   build:
@@ -68,8 +70,6 @@ jobs:
 
   keepalive:
     runs-on: ubuntu-latest
-    schedule:
-      - cron: "*/10 * * * *"
     steps:
       - name: Keep API awake
         run: |
