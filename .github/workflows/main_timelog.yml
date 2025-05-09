@@ -21,7 +21,7 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: "9.x"
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
@@ -39,7 +39,7 @@ jobs:
     runs-on: windows-latest
     needs: build
     environment:
-      name: 'Production'
+      name: "Production"
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
       id-token: write #This is required for requesting the JWT
@@ -50,7 +50,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -62,7 +62,15 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'Timelog'
-          slot-name: 'Production'
+          app-name: "Timelog"
+          slot-name: "Production"
           package: .
-          
+
+  keepalive:
+    runs-on: ubuntu-latest
+    schedule:
+      - cron: "*/10 * * * *"
+    steps:
+      - name: Keep API awake
+        run: |
+          curl --silent --show-error --fail https://timelog-api-dotnet.onrender.com || echo "API non joignable"
