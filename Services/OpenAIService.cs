@@ -9,7 +9,7 @@ public class OpenAIService
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
     private readonly string _baseUrl = "https://api.openai.com/v1/";
-    private readonly string _model = "gpt-3.5-turbo";
+    private readonly string _model = "gpt-4o";
 
     public OpenAIService(HttpClient httpClient)
     {
