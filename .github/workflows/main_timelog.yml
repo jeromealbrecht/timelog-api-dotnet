@@ -137,21 +137,26 @@ jobs:
 
           # Extraire les informations avec plus de logs
           echo "Tentative d'extraction des données..."
+          redirect_url=$(echo "$response" | jq -r '.results[0].redirect_url // empty')
           adref=$(echo "$response" | jq -r '.results[0].adref // empty')
           title=$(echo "$response" | jq -r '.results[0].title // empty')
           description=$(echo "$response" | jq -r '.results[0].description // empty')
 
+          echo "redirect_url extrait: $redirect_url"
           echo "adref extrait: $adref"
           echo "Titre extrait: $title"
           echo "Description extraite: ${description:0:100}..."  # Affiche les 100 premiers caractères
 
           # Valeurs par défaut ou construction de l'URL
-          if [ -z "$adref" ]; then
-            url="https://www.adzuna.fr/search?q=$encoded"
-            echo "Utilisation de l'URL par défaut: $url"
-          else
+          if [ -n "$redirect_url" ]; then
+            url="$redirect_url"
+            echo "Utilisation du redirect_url d'Adzuna : $url"
+          elif [ -n "$adref" ]; then
             url="https://www.adzuna.fr/details/$adref"
-            echo "Utilisation de l'URL personnalisée: $url"
+            echo "Utilisation de l'URL construite avec adref : $url"
+          else
+            url="https://www.adzuna.fr/search?q=$encoded"
+            echo "Utilisation de l'URL par défaut : $url"
           fi
 
           if [ -z "$title" ]; then
