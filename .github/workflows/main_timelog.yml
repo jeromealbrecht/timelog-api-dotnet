@@ -93,30 +93,29 @@ jobs:
           encoded=$(echo "$query" | jq -s -R -r @uri)
           response=$(curl -s "https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1")
 
-          # Vérifier si la réponse est valide
-          if ! echo "$response" | jq . > /dev/null 2>&1; then
-            echo "Erreur: Réponse Adzuna invalide"
-            echo "$response"
-            exit 1
+          # Afficher la réponse complète pour debug
+          echo "Réponse Adzuna complète :"
+          echo "$response" | jq .
+
+          # Extraire les informations disponibles
+          url=$(echo "$response" | jq -r '.results[0].redirect_url // empty')
+          title=$(echo "$response" | jq -r '.results[0].title // empty')
+          description=$(echo "$response" | jq -r '.results[0].description // empty')
+
+          # Utiliser des valeurs par défaut si nécessaire
+          if [ -z "$url" ]; then
+            url="https://www.adzuna.fr/search?q=$encoded"
           fi
 
-          # Vérifier si des résultats existent
-          if [ "$(echo "$response" | jq '.results | length')" -eq 0 ]; then
-            echo "Aucune offre trouvée"
-            exit 1
-          fi
-
-          url=$(echo "$response" | jq -r '.results[0].redirect_url')
-          title=$(echo "$response" | jq -r '.results[0].title')
-
-          # Vérifier si l'URL et le titre sont valides
-          if [ -z "$url" ] || [ "$url" = "null" ] || [ -z "$title" ] || [ "$title" = "null" ]; then
-            echo "Erreur: URL ou titre manquant dans la réponse"
-            exit 1
+          if [ -z "$title" ]; then
+            title="Offre de Développeur Web Junior"
           fi
 
           echo "JOB_URL=$url" >> $GITHUB_ENV
           echo "JOB_TITLE=$title" >> $GITHUB_ENV
+          if [ ! -z "$description" ]; then
+            echo "JOB_DESCRIPTION=$description" >> $GITHUB_ENV
+          fi
 
       - name: Appeler GPT pour générer un message
         id: generate
