@@ -97,7 +97,9 @@ jobs:
           echo "Query encodée: $encoded"
 
           # Appel API avec plus de verbosité
-          response=$(curl -v -s "https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1" 2>&1)
+          url="https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1"
+          echo "URL utilisée pour curl : $url"
+          response=$(curl -v -s "$url" 2>&1)
 
           # Vérifier le code de retour de curl
           curl_exit_code=$?
