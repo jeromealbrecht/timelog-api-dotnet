@@ -91,8 +91,9 @@ jobs:
         run: |
           set -x  # Active le mode debug
 
-          query="Développeur web junior"
-          encoded=$(echo "$query" | jq -s -R -r @uri)
+          # Supprimer les retours à la ligne et les espaces en trop
+          query=$(echo "Développeur web junior" | tr -d '\n\r' | xargs)
+          encoded=$(echo -n "$query" | jq -s -R -r @uri)
           echo "Query encodée: $encoded"
 
           response=$(curl -s "https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1")
