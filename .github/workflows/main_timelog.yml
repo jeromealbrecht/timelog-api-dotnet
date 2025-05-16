@@ -109,4 +109,7 @@ jobs:
         run: |
           curl -s -X POST https://timelog-api-dotnet.onrender.com/api/WhatsAppNotification/send \
             -H "Content-Type: application/json" \
-            -d "{\"message\":\"$JOB_OFFER\", \"url\":\"$JOB_URL\", \"contentSid\":\"$TWILIO_CONTENT_SID\"}"
+            -d "{\"toNumber\":\"$TO_NUMBER\", \"contentSid\":\"$TWILIO_CONTENT_SID\", \"variables\":{\"1\":\"$JOB_OFFER\", \"2\":\"$JOB_URL\"}}"
+        env:
+          TO_NUMBER: ${{ secrets.TO_NUMBER }}
+          TWILIO_CONTENT_SID: ${{ secrets.TWILIO_CONTENT_SID }}
