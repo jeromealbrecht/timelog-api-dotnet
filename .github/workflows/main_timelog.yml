@@ -79,13 +79,47 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TWILIO_CONTENT_SID: ${{ secrets.TWILIO_CONTENT_SID }}
+      ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+      ADZUNA_API_KEY: ${{ secrets.ADZUNA_API_KEY }}
     steps:
-      - name: Appeler GPT pour générer une offre d'emploi
+      - name: Rechercher une offre sur Adzuna
+        id: search
+        run: |
+          query="Développeur web junior"
+          encoded=$(echo $query | jq -s -R -r @uri)
+          response=$(curl -s "https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1")
+
+          # Vérifier si la réponse est valide
+          if ! echo "$response" | jq . > /dev/null 2>&1; then
+            echo "Erreur: Réponse Adzuna invalide"
+            echo "$response"
+            exit 1
+          fi
+
+          # Vérifier si des résultats existent
+          if [ "$(echo "$response" | jq '.results | length')" -eq 0 ]; then
+            echo "Aucune offre trouvée"
+            exit 1
+          fi
+
+          url=$(echo "$response" | jq -r '.results[0].redirect_url')
+          title=$(echo "$response" | jq -r '.results[0].title')
+
+          # Vérifier si l'URL et le titre sont valides
+          if [ -z "$url" ] || [ "$url" = "null" ] || [ -z "$title" ] || [ "$title" = "null" ]; then
+            echo "Erreur: URL ou titre manquant dans la réponse"
+            exit 1
+          fi
+
+          echo "JOB_URL=$url" >> $GITHUB_ENV
+          echo "JOB_TITLE=$title" >> $GITHUB_ENV
+
+      - name: Appeler GPT pour générer un message
         id: generate
         run: |
           response=$(curl -s -X POST https://timelog-api-dotnet.onrender.com/api/OpenAI/chat \
             -H "Content-Type: application/json" \
-            -d "{\"prompt\":\"Simule une offre d'emploi de Développeur Web Junior, ajoute une URL de candidature à la fin (Lien : https://exemple.com/offre123) et ne dépasse pas 1000 caractères dans la réponse.\"}")
+            -d "{\"prompt\":\"Crée un message court et attractif pour une offre d'emploi de '$JOB_TITLE'. Inclus l'URL de candidature à la fin. Le message ne doit pas dépasser 1000 caractères.\"}")
           echo "Réponse brute de l'API : $response"
           if echo "$response" | jq . > /dev/null 2>&1; then
             echo "GPT_RESPONSE=$response" >> $GITHUB_ENV
@@ -95,15 +129,12 @@ jobs:
             exit 1
           fi
 
-      - name: Extraire le texte de l'offre
+      - name: Extraire le texte du message
         id: extract
         run: |
-          offer=$(echo "$GPT_RESPONSE" | jq -r '.response')
-          offer_clean=$(echo "$offer" | tr '\n' ' ' | tr -d '\r' | cut -c1-1000)
-          url=$(echo "$offer" | grep -o 'https://[^ ]*' || true)
-          echo "Texte de l'offre : $offer_clean"
-          echo "JOB_OFFER=$offer_clean" >> $GITHUB_ENV
-          echo "JOB_URL=$url" >> $GITHUB_ENV
+          message=$(echo "$GPT_RESPONSE" | jq -r '.response')
+          message_clean=$(echo "$message" | tr '\n' ' ' | tr -d '\r' | cut -c1-1000)
+          echo "JOB_OFFER=$message_clean" >> $GITHUB_ENV
 
       - name: Envoyer la notification WhatsApp
         run: |
