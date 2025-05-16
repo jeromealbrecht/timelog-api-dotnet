@@ -89,33 +89,61 @@ jobs:
           ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
           ADZUNA_API_KEY: ${{ secrets.ADZUNA_API_KEY }}
         run: |
+          set -x  # Active le mode debug
+
           query="Développeur web junior"
           encoded=$(echo "$query" | jq -s -R -r @uri)
+          echo "Query encodée: $encoded"
+
           response=$(curl -s "https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1")
 
-          # Afficher la réponse complète pour debug
-          echo "Réponse Adzuna complète :"
-          echo "$response" | jq .
+          # Vérifier si la réponse est un JSON valide
+          if ! echo "$response" | jq . > /dev/null 2>&1; then
+            echo "Réponse brute d'Adzuna:"
+            echo "$response"
+            exit 1
+          fi
 
-          # Extraire les informations disponibles
+          # Afficher la structure de la réponse
+          echo "Structure de la réponse:"
+          echo "$response" | jq 'keys'
+
+          # Vérifier si results existe
+          if ! echo "$response" | jq -e '.results' > /dev/null 2>&1; then
+            echo "Pas de champ 'results' dans la réponse"
+            echo "$response" | jq .
+            exit 1
+          fi
+
+          # Extraire les informations avec plus de logs
+          echo "Tentative d'extraction des données..."
           url=$(echo "$response" | jq -r '.results[0].redirect_url // empty')
           title=$(echo "$response" | jq -r '.results[0].title // empty')
           description=$(echo "$response" | jq -r '.results[0].description // empty')
 
-          # Utiliser des valeurs par défaut si nécessaire
+          echo "URL extraite: $url"
+          echo "Titre extrait: $title"
+          echo "Description extraite: ${description:0:100}..."  # Affiche les 100 premiers caractères
+
+          # Valeurs par défaut
           if [ -z "$url" ]; then
             url="https://www.adzuna.fr/search?q=$encoded"
+            echo "Utilisation de l'URL par défaut: $url"
           fi
 
           if [ -z "$title" ]; then
             title="Offre de Développeur Web Junior"
+            echo "Utilisation du titre par défaut: $title"
           fi
 
-          echo "JOB_URL=$url" >> $GITHUB_ENV
-          echo "JOB_TITLE=$title" >> $GITHUB_ENV
-          if [ ! -z "$description" ]; then
-            echo "JOB_DESCRIPTION=$description" >> $GITHUB_ENV
-          fi
+          # Sauvegarder les variables
+          {
+            echo "JOB_URL=$url"
+            echo "JOB_TITLE=$title"
+            [ ! -z "$description" ] && echo "JOB_DESCRIPTION=$description"
+          } >> $GITHUB_ENV
+
+          echo "Variables sauvegardées dans GITHUB_ENV"
 
       - name: Appeler GPT pour générer un message
         id: generate
