@@ -18,7 +18,7 @@ public class UserService
     }
 
     public List<User> Get() => _users.Find(_ => true).ToList();
-    public User Get(string id) => _users.Find(u => u.Id == id).FirstOrDefault();
+    public User? Get(string id) => _users.Find(u => u.Id == id).FirstOrDefault();
     public User Create(User user)
     {
         _users.InsertOne(user);
@@ -32,7 +32,7 @@ public class UserService
         _users.DeleteOne(u => u.Id == id);
 
     // Méthodes de gestion des tâches
-    public UserTask AddTask(string userId, UserTask task)
+    public UserTask? AddTask(string userId, UserTask task)
     {
         var user = _users.Find(u => u.Id == userId).FirstOrDefault();
         if (user == null) return null;
@@ -43,7 +43,7 @@ public class UserService
         return task;
     }
 
-    public UserTask UpdateTask(string userId, string taskId, UserTask updatedTask)
+    public UserTask? UpdateTask(string userId, string taskId, UserTask updatedTask)
     {
         var user = _users.Find(u => u.Id == userId).FirstOrDefault();
         if (user == null) return null;
