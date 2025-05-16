@@ -74,3 +74,29 @@ jobs:
       - name: Keep API awake
         run: |
           curl --silent --show-error --fail https://timelog-api-dotnet.onrender.com || echo "API non joignable"
+
+  notify_job_offer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler GPT pour générer une offre d'emploi
+        id: generate
+        run: |
+          response=$(curl -s -X POST https://timelog-api-dotnet.onrender.com/api/OpenAI/chat \
+            -H "Content-Type: application/json" \
+            -d '{"message":"Génère une offre d\'emploi de Développeur Web Junior et ajoute une URL de candidature à la fin, sous la forme \"Lien : https://exemple.com/offre123\""}')
+          echo "GPT_RESPONSE=$response" >> $GITHUB_ENV
+
+      - name: Extraire le texte de l'offre
+        id: extract
+        run: |
+          offer=$(echo "$GPT_RESPONSE" | jq -r '.response')
+          url=$(echo "$offer" | grep -o 'https://[^ ]*')
+          echo "Texte de l'offre : $offer"
+          echo "JOB_OFFER=$offer" >> $GITHUB_ENV
+          echo "JOB_URL=$url" >> $GITHUB_ENV
+
+      - name: Envoyer la notification WhatsApp
+        run: |
+          curl -s -X POST https://timelog-api-dotnet.onrender.com/api/WhatsAppNotification/send \
+            -H "Content-Type: application/json" \
+            -d "{\"message\":\"$JOB_OFFER\", \"url\":\"$JOB_URL\"}"
