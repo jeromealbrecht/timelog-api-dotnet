@@ -83,7 +83,7 @@ jobs:
         run: |
           response=$(curl -s -X POST https://timelog-api-dotnet.onrender.com/api/OpenAI/chat \
             -H "Content-Type: application/json" \
-            -d "{\"message\":\"Génère une offre d'emploi de Développeur Web Junior et ajoute une URL de candidature à la fin, sous la forme 'Lien : https://exemple.com/offre123'\"}")
+            -d "{\"prompt\":\"Génère une offre d'emploi de Développeur Web Junior et ajoute une URL de candidature à la fin, sous la forme 'Lien : https://exemple.com/offre123'\"}")
           echo "Réponse brute de l'API : $response"
           if echo "$response" | jq . > /dev/null 2>&1; then
             echo "GPT_RESPONSE=$response" >> $GITHUB_ENV
