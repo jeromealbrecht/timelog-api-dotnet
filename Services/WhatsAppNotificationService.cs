@@ -40,6 +40,8 @@ namespace TimeLog.Services
             
             // Initialize Twilio client with API key and secret
             TwilioClient.Init(_apiKey, _apiSecret, _accountSid);
+
+            Console.WriteLine("TWILIO_ACCOUNT_SID: " + _accountSid);
         }
 
         public async Task<string> SendMessageAsync(string toNumber, string contentSid, Dictionary<string, string> variables)
