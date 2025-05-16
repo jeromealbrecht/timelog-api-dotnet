@@ -96,11 +96,27 @@ jobs:
           encoded=$(echo -n "$query" | jq -s -R -r @uri)
           echo "Query encodée: $encoded"
 
-          response=$(curl -s "https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1")
+          # Appel API avec plus de verbosité
+          response=$(curl -v -s "https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1" 2>&1)
+
+          # Vérifier le code de retour de curl
+          curl_exit_code=$?
+          echo "Code de retour curl: $curl_exit_code"
+
+          # Vérifier si la réponse est vide
+          if [ -z "$response" ]; then
+            echo "Erreur: Réponse vide d'Adzuna"
+            exit 1
+          fi
+
+          # Afficher les premiers caractères de la réponse pour debug
+          echo "Début de la réponse:"
+          echo "$response" | head -c 500
 
           # Vérifier si la réponse est un JSON valide
           if ! echo "$response" | jq . > /dev/null 2>&1; then
-            echo "Réponse brute d'Adzuna:"
+            echo "Erreur: Réponse Adzuna invalide"
+            echo "Réponse complète:"
             echo "$response"
             exit 1
           fi
@@ -118,18 +134,21 @@ jobs:
 
           # Extraire les informations avec plus de logs
           echo "Tentative d'extraction des données..."
-          url=$(echo "$response" | jq -r '.results[0].redirect_url // empty')
+          adref=$(echo "$response" | jq -r '.results[0].adref // empty')
           title=$(echo "$response" | jq -r '.results[0].title // empty')
           description=$(echo "$response" | jq -r '.results[0].description // empty')
 
-          echo "URL extraite: $url"
+          echo "adref extrait: $adref"
           echo "Titre extrait: $title"
           echo "Description extraite: ${description:0:100}..."  # Affiche les 100 premiers caractères
 
-          # Valeurs par défaut
-          if [ -z "$url" ]; then
+          # Valeurs par défaut ou construction de l'URL
+          if [ -z "$adref" ]; then
             url="https://www.adzuna.fr/search?q=$encoded"
             echo "Utilisation de l'URL par défaut: $url"
+          else
+            url="https://www.adzuna.fr/details/$adref"
+            echo "Utilisation de l'URL personnalisée: $url"
           fi
 
           if [ -z "$title" ]; then
