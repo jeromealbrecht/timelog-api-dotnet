@@ -84,9 +84,13 @@ jobs:
     steps:
       - name: Rechercher une offre sur Adzuna
         id: search
+        shell: bash
+        env:
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_API_KEY: ${{ secrets.ADZUNA_API_KEY }}
         run: |
           query="Développeur web junior"
-          encoded=$(echo $query | jq -s -R -r @uri)
+          encoded=$(echo "$query" | jq -s -R -r @uri)
           response=$(curl -s "https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=$ADZUNA_APP_ID&app_key=$ADZUNA_API_KEY&what=$encoded&results_per_page=1")
 
           # Vérifier si la réponse est valide
