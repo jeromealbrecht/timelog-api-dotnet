@@ -77,6 +77,8 @@ jobs:
 
   notify_job_offer:
     runs-on: ubuntu-latest
+    env:
+      TWILIO_CONTENT_SID: ${{ secrets.TWILIO_CONTENT_SID }}
     steps:
       - name: Appeler GPT pour générer une offre d'emploi
         id: generate
@@ -107,4 +109,4 @@ jobs:
         run: |
           curl -s -X POST https://timelog-api-dotnet.onrender.com/api/WhatsAppNotification/send \
             -H "Content-Type: application/json" \
-            -d "{\"message\":\"$JOB_OFFER\", \"url\":\"$JOB_URL\"}"
+            -d "{\"message\":\"$JOB_OFFER\", \"url\":\"$JOB_URL\", \"contentSid\":\"$TWILIO_CONTENT_SID\"}"
