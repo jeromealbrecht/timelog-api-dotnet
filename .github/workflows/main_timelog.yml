@@ -96,16 +96,24 @@ jobs:
           encoded=$(echo -n "$query" | jq -s -R -r @uri)
           echo "Query encodée: $encoded"
 
-          # Appel API avec plus de verbosité
-          url="https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_API_KEY}&what=${encoded}&contract_type=permanent&results_per_page=1"
-          url=$(echo "$url" | tr -d '\n\r')
-          echo "URL utilisée pour curl : $url"
-          curl -v "$url"   # Affiche les logs pour debug
-          response=$(curl -s "$url")  # Stocke uniquement le JSON
+          # Première tentative : CDI uniquement
+          url_cdi="https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_API_KEY}&what=${encoded}&contract_type=permanent&results_per_page=1"
+          url_cdi=$(echo "$url_cdi" | tr -d '\n\r')
+          echo "URL CDI utilisée pour curl : $url_cdi"
+          curl -v "$url_cdi"
+          response=$(curl -s "$url_cdi")
 
-          # Vérifier le code de retour de curl
-          curl_exit_code=$?
-          echo "Code de retour curl: $curl_exit_code"
+          # Vérifier si la réponse est un JSON valide et contient au moins un résultat
+          if echo "$response" | jq . > /dev/null 2>&1 && [ "$(echo "$response" | jq '.results | length')" -gt 0 ]; then
+            echo "Offre CDI trouvée."
+          else
+            echo "Aucune offre CDI trouvée, nouvelle tentative sans filtre CDI."
+            url_all="https://api.adzuna.com/v1/api/jobs/fr/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_API_KEY}&what=${encoded}&results_per_page=1"
+            url_all=$(echo "$url_all" | tr -d '\n\r')
+            echo "URL fallback utilisée pour curl : $url_all"
+            curl -v "$url_all"
+            response=$(curl -s "$url_all")
+          fi
 
           # Vérifier si la réponse est vide
           if [ -z "$response" ]; then
