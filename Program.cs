@@ -36,12 +36,8 @@ builder.Services.AddSingleton<IWhatsAppNotificationService, WhatsAppNotification
 
 var app = builder.Build();
 
-// Configuration de Swagger en développement
-if (isDev)
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthorization();
 app.MapControllers();
